@@ -15,30 +15,34 @@ st.set_page_config(
 
 
 # --------------------------------------------------
-# GROK CLIENT
+# GROQ API
 # --------------------------------------------------
 
-api_key = os.getenv("XAI_API_KEY")
+api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
-    st.error("XAI_API_KEY is not configured.")
+    st.error("GROQ_API_KEY is not configured.")
     st.stop()
 
 client = OpenAI(
     api_key=api_key,
-    base_url="https://api.x.ai/v1"
+    base_url="https://api.groq.com/openai/v1"
 )
 
 
 # --------------------------------------------------
-# UI
+# APP TITLE
 # --------------------------------------------------
 
 st.title("✍️ AI Content Assistant")
-st.write("Create social media content with Grok AI.")
+st.write("Create engaging social media content with AI.")
 
 st.divider()
 
+
+# --------------------------------------------------
+# USER INPUTS
+# --------------------------------------------------
 
 content_type = st.selectbox(
     "Content Type",
@@ -53,7 +57,6 @@ content_type = st.selectbox(
     ]
 )
 
-
 platform = st.selectbox(
     "Platform",
     [
@@ -65,18 +68,15 @@ platform = st.selectbox(
     ]
 )
 
-
 topic = st.text_area(
     "Topic",
-    placeholder="Example: Benefits of learning Python"
+    placeholder="Example: Why students should learn Python"
 )
-
 
 target_audience = st.text_input(
     "Target Audience",
     placeholder="Example: Computer science students"
 )
-
 
 tone = st.selectbox(
     "Tone",
@@ -91,6 +91,10 @@ tone = st.selectbox(
     ]
 )
 
+
+# --------------------------------------------------
+# GENERATE BUTTON
+# --------------------------------------------------
 
 generate = st.button(
     "✨ Generate Content",
@@ -115,7 +119,7 @@ if generate:
     prompt = f"""
 You are an expert social media content writer.
 
-Create a complete piece of content using the following requirements:
+Create high-quality content using these requirements:
 
 Content Type: {content_type}
 Platform: {platform}
@@ -123,25 +127,26 @@ Topic: {topic}
 Target Audience: {target_audience}
 Tone: {tone}
 
-Your response must contain:
+Create:
 
 1. A strong title or hook.
-2. The complete post/content.
-3. A separate caption suitable for the selected platform.
+2. A complete and engaging post.
+3. A separate caption suitable for {platform}.
 4. 8-12 relevant hashtags.
 
-Make the content engaging, natural, useful, and appropriate for the target audience.
+Make the content natural, useful, engaging, and appropriate
+for the target audience.
 
 Do not explain your process.
-Do not include unnecessary introductions.
+Do not add unnecessary text.
 
-Use this exact format:
+Use exactly this format:
 
 TITLE:
 [title]
 
 POST:
-[complete content]
+[complete post]
 
 CAPTION:
 [caption]
@@ -150,12 +155,11 @@ HASHTAGS:
 [hashtags]
 """
 
-    with st.spinner("Grok is creating your content..."):
+    with st.spinner("Creating your content..."):
 
         try:
-
             response = client.chat.completions.create(
-                model="grok-3-mini",
+                model="openai/gpt-oss-20b",
                 messages=[
                     {
                         "role": "system",
@@ -166,7 +170,8 @@ HASHTAGS:
                         "content": prompt
                     }
                 ],
-                temperature=0.8
+                temperature=0.8,
+                max_tokens=2000
             )
 
             result = response.choices[0].message.content
@@ -185,5 +190,4 @@ HASHTAGS:
             )
 
         except Exception as e:
-
             st.error(f"Something went wrong: {e}")
